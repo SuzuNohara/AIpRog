@@ -1,0 +1,4 @@
+flask
+pyvis
+matplotlib
+networkx

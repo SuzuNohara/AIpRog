@@ -1,2 +1,4 @@
 *.class
 .idea
+/GhostGrid/ghostenv
+/GhostGrid/maps
