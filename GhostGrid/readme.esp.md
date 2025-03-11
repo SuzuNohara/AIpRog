@@ -30,6 +30,18 @@ El mundo es una **red de nodos interconectados** organizada en capas numeradas d
 
 ---
 
+### 1.3 Entorno determinista
+
+Las acciones permitidas para los agentes y las alteraciones que estas pueden hacer en el entorno no cambian de forma estocastica el entorno, y al estar bien determinadas y conocidas las acciones de estos, esto permite que el entorno se comporte de forma determinista.
+
+### 1.4 Entorno Parcialmente Observable
+
+Para los agentes, el entorno sera parcialmente observable, ya que para estos no es permitido tener plena conciencia del entorno completo y necesitan moverse a travez del mismo para poder obtener informacion sobre este.
+
+### 1.5 Entorno Estático
+
+El mundo no cambiara de forma alguna durante la ejecucion del juego, no se crearan ni se destruiran nodos, ni se crearan nuevas conexiones entre estos, por lo que el entorno es estatico.
+
 ## 2. Percepciones
 
 Cada agente tiene diferentes capacidades de percepción sobre el entorno.
