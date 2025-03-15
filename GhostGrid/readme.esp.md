@@ -20,7 +20,8 @@ El mundo es una **red de nodos interconectados** organizada en capas numeradas d
   - Aparece en un nodo aleatorio de la capa **0**.
   - Comienza con **100 de botín total**, dividido entre los Ghosts al inicio del juego.
   - Tiene una energía base equivalente a la **distancia promedio de los caminos más cortos entre la capa 0 y la capa n**.
-  - Puede **replicarse solo en el primer turno**, dividiendo el botín entre sus copias.
+  - Puede replicarse solo en el primer turno, dividiendo el botín entre sus copias. **Restricción**: El número de replicaciones no puede superar las 10 divisiones, lo que significa que en un juego el máximo de Ghosts existentes es 10.
+(Nuevo: Aquí se ha integrado la limitación de replicación.)
 - **Sentinel:**
   - Aparece en un nodo aleatorio de la capa **n - 1**.
   - No tiene botín inicial.
@@ -82,6 +83,7 @@ Cada agente tiene un conjunto de acciones disponibles.
 - **Depositar botín:** Puede dejar una fracción o la totalidad del botín en el nodo actual.
 - **Tomar botín:** Puede recoger botín del nodo en el que se encuentra.
 - **Replicarse:** Puede crear una copia de sí mismo **solo en el primer turno**, dividiendo el botín entre los Ghosts activos al inicio del juego.
+- **Recuperación de energía:** Cuando sea el turno de los Ghost para moverse, si el Ghost decide no moverse por cualquier motivo, recupera 5% de su energía inicial.
 
 ### 3.2 Acciones de Sentinel
 
@@ -126,3 +128,18 @@ El juego finaliza en los siguientes escenarios:
 - **Victoria de Sentinel:** Si los Sentinels logran **capturar a todos los Ghosts** o recuperar la **mayoría del botín**.
 - **Empate:** Si la cantidad de botín recuperado por Sentinels y el botín transportado por Ghosts es **cercana al 50%-50%**.
 
+
+### 6. Dinámica del Juego y Orden de Turnos
+
+
+- Secuencia de Turnos:
+  - **Primer Turno:**  
+     - Los Ghosts realizan sus divisiones (replicación) y establecen cómo se repartirá el botín entre ellos.
+    - **Segundo Turno:**  
+     - Se crean los Sentinels en base a las divisiones definidas por los Ghosts en el turno anterior.
+  - **Turnos Subsiguientes:**  
+    - Se alternan las acciones de Ghosts y Sentinels, de modo que no se muevan simultáneamente.  
+
+- Bases de la Jugabilidad:
+
+  - La dinámica central del juego consiste en el desplazamiento estratégico de los dos agentes (Ghost y Sentinel) a través del entorno, con el objetivo de alcanzar las condiciones de victoria o forzar la derrota del oponente (según se especifique en las condiciones de victoria y derrota).  
