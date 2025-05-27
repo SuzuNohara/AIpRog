@@ -1,11 +1,16 @@
 import random
 import time
 import os
+import collections
 
 class Micromouse:
     def __init__(self):
         self.memory = []
         self.position = (0, 0)
+        self.gnodes = 0
+        self.enodes = 0
+        self.cost = 0
+        self.etime = 0
 
     def move_left(self):
         self.memory.append('l')
@@ -61,11 +66,20 @@ def genMaze(n, m):
         for (dx, dy) in directions:
             nx, ny = cx + dx, cy + dy
             if 0 <= nx < n * 2 and 0 <= ny < m * 2 and maze[nx][ny] == 0:
-                if sum(1 for (ddx, ddy) in directions if 0 <= nx + ddx < n * 2 and 0 <= ny + ddy < m * 2 and maze[nx + ddx][ny + ddy] == 1) < 2:
+                if sum(1 for (ddx, ddy) in directions if
+                       0 <= nx + ddx < n * 2 and 0 <= ny + ddy < m * 2 and maze[nx + ddx][ny + ddy] == 1) < 2:
                     maze[cx][cy] = 1
                     maze[nx][ny] = 1
                     maze[cx + dx // 2][cy + dy // 2] = 1
                     carve_passages_from(nx, ny, maze, n, m)
+
+        for (dx, dy) in directions:
+            nx, ny = cx + dx, cy + dy
+            if 0 <= nx < n * 2 and 0 <= ny < m * 2 and maze[nx][ny] == 0:
+                if random.random() < 0.3:
+                    maze[cx][cy] = 1
+                    maze[nx][ny] = 1
+                    maze[cx + dx // 2][cy + dy // 2] = 1
 
     maze = init_maze(n, m)
     carve_passages_from(0, 0, maze, n, m)
@@ -96,55 +110,34 @@ def print_maze(maze, mouse):
         print()
 
 def solve_maze(maze, mouse):
-    if mouse.get_position() == (len(maze) - 2, len(maze[0]) - 2):
-        return True
-    else:
-        left = mouse.check_left(maze)
-        right = mouse.check_right(maze)
-        up = mouse.check_up(maze)
-        down = mouse.check_down(maze)
-        if left:
-            mouse.move_left()
-            mouse.set_position((mouse.get_position()[0], mouse.get_position()[1] - 1))
-            print_maze(maze, mouse)
-            time.sleep(0.05)
-            if solve_maze(maze, mouse):
-                return True
-            else:
-                mouse.pop_last_action()
-                mouse.set_position((mouse.get_position()[0], mouse.get_position()[1] + 1))
-        if right:
-            mouse.move_right()
-            mouse.set_position((mouse.get_position()[0], mouse.get_position()[1] + 1))
-            print_maze(maze, mouse)
-            time.sleep(0.05)
-            if solve_maze(maze, mouse):
-                return True
-            else:
-                mouse.pop_last_action()
-                mouse.set_position((mouse.get_position()[0], mouse.get_position()[1] - 1))
-        if up:
-            mouse.move_up()
-            mouse.set_position((mouse.get_position()[0] - 1, mouse.get_position()[1]))
-            print_maze(maze, mouse)
-            time.sleep(0.05)
-            if solve_maze(maze, mouse):
-                return True
-            else:
-                mouse.pop_last_action()
-                mouse.set_position((mouse.get_position()[0] + 1, mouse.get_position()[1]))
-        if down:
-            mouse.move_down()
-            mouse.set_position((mouse.get_position()[0] + 1, mouse.get_position()[1]))
-            print_maze(maze, mouse)
-            time.sleep(0.05)
-            if solve_maze(maze, mouse):
-                return True
-            else:
-                mouse.pop_last_action()
-                mouse.set_position((mouse.get_position()[0] - 1, mouse.get_position()[1]))
+    from collections import deque
+    start = (0, 0)
+    end = (len(maze) - 2, len(maze[0]) - 2)
+    queue = deque()
+    queue.append((start, []))
+    visited = set()
+    visited.add(start)
+    mouse.gnodes = 1
+
+    while queue:
+        (x, y), path = queue.popleft()
+        mouse.enodes += 1
+        mouse.set_position((x, y))
+        print_maze(maze, mouse)
+        time.sleep(0.05)
+        if (x, y) == end:
+            mouse.memory = path
+            return True
+        for action, (dx, dy) in zip(['l', 'r', 'u', 'd'], [(0, -1), (0, 1), (-1, 0), (1, 0)]):
+            nx, ny = x + dx, y + dy
+            if 0 <= nx < len(maze) and 0 <= ny < len(maze[0]) and maze[nx][ny] == 1 and (nx, ny) not in visited:
+                visited.add((nx, ny))
+                queue.append(((nx, ny), path + [action]))
+                mouse.gnodes += 1
+    return False
 
 def follow_path(maze, mouse, path):
+    mouse.cost = len(path)
     print_maze(maze, mouse)
     time.sleep(0.05)
     for action in path:
@@ -160,13 +153,22 @@ def follow_path(maze, mouse, path):
         print_maze(maze, mouse)
         time.sleep(0.05)
 
-n = 40
-m = 40
+n = 10
+m = 10
 mouse = Micromouse()
 maze = genMaze(n, m)
 print_maze(maze, mouse)
+start_time = time.time()
 solve_maze(maze, mouse)
+end_time = time.time()
+elapsed_ms = (end_time - start_time) * 1000
+mouse.etime = elapsed_ms
 mouse.set_position((0, 0))
 print(mouse.memory)
 time.sleep(5)
 follow_path(maze, mouse, mouse.memory)
+
+print(f"Elapsed time: {mouse.etime:.2f} ms")
+print(f"Number of generated nodes: {mouse.gnodes}")
+print(f"Number of expanded nodes: {mouse.enodes}")
+print(f"Cost: {mouse.cost}")
