@@ -17,7 +17,7 @@ class LogicAgent:
         return self.position
 
     def mark_safe(self, x, y):
-        self.memory[x][y] = 's'
+        self.save_memory("s")
 
     def evaluate(self, a, b):
         x, y = self.position
@@ -39,10 +39,12 @@ class LogicAgent:
         else:
             print("Invalid move")
 
-    def save_memory(self, x, y, value):
+    def save_memory(self, value):
+        x, y = self.position
         if 0 <= x < len(self.memory) and 0 <= y < len(self.memory[0]):
-            if value not in self.memory[x][y]:
-                self.memory[x][y] += value
+            for v in value if isinstance(value, list) else [value]:
+                if v not in self.memory[x][y]:
+                    self.memory[x][y] += v
 
 class WampusWorld:
     def __init__(self, n=5, m=5, use_default=True):
@@ -97,8 +99,6 @@ class WampusWorld:
         return world
 
     def print_world(self, agent_pos):
-        import os
-        os.system('clear')
         for i, row in enumerate(self.grid):
             for j, cell in enumerate(row):
                 if (i, j) == agent_pos:
@@ -139,12 +139,43 @@ class WampusWorld:
         if cell[4]: perceptions.append('p')
         return perceptions
 
+def explore(agent, world):
+    while agent.is_alive and not agent.has_gold:
+        os.system('clear')
+        perceptions = agent.perceive(world)
+        agent.save_memory(perceptions)
+        print(f"Senses: {perceptions}")
+        print("______________________________")
+        world.print_world(agent.get_position())
+        print("______________________________")
+        agent.print_memory()
+        if 'g' in perceptions:
+            agent.has_gold = True
+            print("Agent victory! Gold found.")
+            break
+        elif 'p' in perceptions or 'w' in perceptions:
+            agent.is_alive = False
+            print("Agent death! Fell into a pit or met the Wampus.")
+            break
+        else:
+            x, y = agent.get_position()
+            agent.mark_safe(x, y)
+            n, m = len(world.grid), len(world.grid[0])
+            directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+            accessible_positions = []
+            for dx, dy in directions:
+                nx, ny = x + dx, y + dy
+                if 0 <= nx < n and 0 <= ny < m:
+                    accessible_positions.append((nx, ny))
+            print(f"Accessible positions: {accessible_positions}")
+        time.sleep(1)
+        break
+
 def main():
     n, m = 5, 5
-    world = create_default_world()
+    world = WampusWorld(n, m, use_default=True)
     agent = LogicAgent()
-    print_world(world, agent.position)
-    print("_____________________________________________")
-    print(get_perceptions(world, agent.position))
+    explore(agent, world)
+
 if __name__ == "__main__":
     main()
